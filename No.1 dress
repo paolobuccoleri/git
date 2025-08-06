@@ -1,0 +1,71 @@
+```dart
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+void main() => runApp(OutfitAIApp());
+
+class OutfitAIApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Outfit AI',
+      home: OutfitScreen(),
+    );
+  }
+}
+
+class OutfitScreen extends StatefulWidget {
+  @override
+  _OutfitScreenState createState() => _OutfitScreenState();
+}
+
+class _OutfitScreenState extends State<OutfitScreen> {
+  TextEditingController _controller = TextEditingController();
+  String responseText = '';
+
+  Future<void> getOutfit() async {
+    final response = await http.post(
+      Uri.parse('https://api.openai.com/v1/completions'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer LA_TUA_API_KEY',
+      },
+      body: jsonEncode({
+        'model': 'text-davinci-003',
+        'prompt': 'Suggerisci un outfit per: ${_controller.text}',
+        'max_tokens': 100,
+      }),
+    );
+final data = json.decode(response.body);
+    setState(() {
+      responseText = data['choices'][0]['text'];
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Outfit Generator')),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          children: [
+            TextField(
+              controller: _controller,
+              decoration: InputDecoration(labelText: 'Scrivi il tuo stile'),
+            ),
+            SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: getOutfit,
+              child: Text('Genera Outfit'),
+            ),
+            SizedBox(height: 20),
+            Text(responseText),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
